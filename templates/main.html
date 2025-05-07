@@ -29,16 +29,19 @@
         </div>
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
-          <ul id="sidebarnav">
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="" aria-expanded="false">
-                <span>
-                  <i class="ti ti-layout-dashboard"></i>
-                </span>
-                <span class="hide-menu">Dashboard</span>
-              </a>
-            </li>
-          </ul>
+          <form method="get" action="/app/main/">
+            <fieldset>
+                <legend>Selecciona las regiones</legend>
+                {% for region in all %}
+                    <label>
+                        <input type="checkbox" name="region" value="{{ region }}"
+                            {% if region in regions %}checked{% endif %}>
+                        Región {{ region }}
+                    </label><br>
+                {% endfor %}
+            </fieldset>
+            <button type="submit">Actualizar gráfico</button>
+          </form>
         </nav>
         <!-- End Sidebar navigation -->
       </div>
