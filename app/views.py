@@ -11,7 +11,7 @@ def main_dashboard(request):
     regions = request.GET.getlist('region')
     
     if not regions:
-        regions = TODAS_LAS_REGIONES
+        regions = VARIABLES
 
     y = [random.randint(5, 20) for _ in regions]
     fig = go.Figure(data=go.Bar(x=regions, y=y, name="Ventas"))
