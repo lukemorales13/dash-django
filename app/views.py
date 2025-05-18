@@ -2,12 +2,12 @@ from django.shortcuts import render
 import plotly.io as pio
 from pymongo import MongoClient
 from .grafico_fico_vs_intereses import generar_grafico_fico_vs_interes
-from .ingresos_por_grado import grafico_ingresos_por_grado
 from .morosos_vs_intereses import grafico_morosos_intereses
 from .ingreso_por_grado_filtrado import generar_grafico_ingreso_por_grado
 from .tabla import generar_tabla_resumen_prestamos
 from .grafica1_corregida import obtener_figura_1
 from .highlights import highlights
+from .grafica_intereses import crear_grafica_intereses
 import concurrent.futures
 
 cliente = MongoClient('mongodb://localhost:27017/')
@@ -72,7 +72,7 @@ def main_dashboard(request):
     tasks = [
         (generar_grafico_fico_vs_interes, (filtros, bd['prestamos_analitica'])),
         (highlights, (filtros, bd['ultimosMesesPrestamos'], bd['morososPrestamos'], bd['ultimosMesesGanancias'])),
-        (grafico_ingresos_por_grado, (filtros, bd['ingresos_por_grado_extendido'])),
+        (crear_grafica_intereses, (filtros, bd['loanColeccion'])),
         (generar_grafico_ingreso_por_grado, (filtros, bd['ingresos_por_grado'])),
         (grafico_morosos_intereses, (filtros, bd["morosidadInteres"])),
         (generar_tabla_resumen_prestamos, (filtros, bd['analisis_prestamos'])),
@@ -89,12 +89,12 @@ def main_dashboard(request):
             idx = future_to_task[future]
             results[idx] = future.result()
 
-    fig_fico, fig_highlights, fig_prestXgrado, fig_ingXgrado, fig_morosos, fig_tabla, fig_linea = results
+    fig_fico, fig_highlights, fig_ganXgrado, fig_ingXgrado, fig_morosos, fig_tabla, fig_linea = results
 
     return render(request, 'content.html', {
         'fig_fico' : pio.to_html(fig_fico, include_plotlyjs='cdn'),
         'highlight_plot': pio.to_html(fig_highlights, include_plotlyjs='cdn'),
-        'fig_prestXgrado': pio.to_html(fig_prestXgrado, include_plotlyjs='cdn'),
+        'fig_ganXgrado': pio.to_html(fig_ganXgrado, include_plotlyjs='cdn'),
         'fig_ingXgrado': pio.to_html(fig_ingXgrado, include_plotlyjs='cdn'),
         'fig_morosos': pio.to_html(fig_morosos, include_plotlyjs='cdn'),
         'fig_tabla': pio.to_html(fig_tabla, include_plotlyjs='cdn'),

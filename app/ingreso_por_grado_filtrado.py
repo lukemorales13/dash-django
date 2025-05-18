@@ -69,13 +69,13 @@ def generar_grafico_ingreso_por_grado(filtross, collection):
         y=df['ingreso_promedio'],
         text=df['conteo_prestamos'],
         textposition='auto',
-        marker_color='#2ecc71',
+        marker_color='#3498db',
         hovertemplate='Grado: %{x}<br>Ingreso promedio: %{y:.2f}<br>Préstamos: %{text}',
         name="Ingreso Promedio"
     ))
 
     figura.update_layout(
-        title=dict(text='Ingreso Anual Promedio por Grado de Préstamo', x=0.5),
+        title=dict(text='Ingreso Anual Promedio<br>por Grado de Préstamo', x=0.5),
         xaxis=dict(
             title='Grado del Préstamo',
             categoryorder='array',
@@ -83,9 +83,10 @@ def generar_grafico_ingreso_por_grado(filtross, collection):
         ),
         yaxis=dict(title='Ingreso Anual Promedio (USD)'),
         plot_bgcolor='white',
-        margin=dict(l=70, r=70, t=90, b=70),
+        margin=dict(l=20, r=0, t=100, b=10),
         hoverlabel=dict(bgcolor="white", font_size=12, font_family="Arial"),
-        height=400
+        height=400,
+        width=300,
     )
 
     return figura

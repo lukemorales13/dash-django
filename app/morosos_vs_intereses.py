@@ -91,10 +91,13 @@ def grafico_morosos_intereses(filtros, collection):
         y='Porcentaje de Morosos',
         text='Porcentaje de Morosos',
         labels={'Rango': 'Rango de Tasa de Interés', 'Porcentaje de Morosos': 'Morosidad (%)'},
-        title='Porcentaje de Morosos por Rango de Tasa de Interés',
+        # title=dict(text='Porcentaje de Morosos por<br>Rango de Tasa de Interés', x=0.5),
+        width=320,
     )
 
     fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
-    fig.update_layout(yaxis_tickformat='.2f', yaxis_range=[0, max(df_plot['Porcentaje de Morosos']) + 1])
+    fig.update_layout(yaxis_tickformat='.2f', yaxis_range=[0, max(df_plot['Porcentaje de Morosos']) + 1],
+                      title=dict(text='Porcentaje de Morosos por<br>Rango de Tasa de Interés', x=0.5),
+                      margin=dict(l=20, r=0, t=100, b=10), plot_bgcolor='white',)
 
     return fig

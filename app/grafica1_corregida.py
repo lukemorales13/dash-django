@@ -181,7 +181,9 @@ def obtener_figura_1(filtros, coleccion):
                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
         ),
         template="plotly_white",
-        legend=dict(x=0.02, y=1.05, bgcolor='rgba(255,255,255,0.7)')
+        legend=dict(x=0.02, y=1.13, bgcolor='rgba(255,255,255,0.7)'),
+        width=300,
+        margin=dict(l=20, r=0, t=100, b=10),
     )
 
     return fig
