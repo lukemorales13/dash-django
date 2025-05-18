@@ -9,6 +9,9 @@ from .grafica1_corregida import obtener_figura_1
 from .highlights import highlights
 from .grafica_intereses import crear_grafica_intereses
 import concurrent.futures
+import hashlib
+import json
+from django.core.cache import cache
 
 cliente = MongoClient('mongodb://localhost:27017/')
 bd = cliente['lendingclub']
@@ -33,7 +36,15 @@ REGIONES = [
 ]
 TIPO_PROP_VIVIENDAS = ['Hipoteca', 'Alquilada', 'Propia', 'Todas']
 DURACION = ['36 meses', '60 meses', 'Todas']
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+def filtros_to_cache_key(filtros):
+    filtros_str = json.dumps(filtros, sort_keys=True)
+    return 'dashboard:' + hashlib.md5(filtros_str.encode()).hexdigest()
 
 def main_dashboard(request):
     # Manejo de propiedades
@@ -69,6 +80,11 @@ def main_dashboard(request):
         'duracion': selected_duracion
     }
 
+    cache_key = filtros_to_cache_key(filtros)
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return render(request, 'content.html', cached_result)
+
     tasks = [
         (generar_grafico_fico_vs_interes, (filtros, bd['prestamos_analitica'])),
         (highlights, (filtros, bd['ultimosMesesPrestamos'], bd['morososPrestamos'], bd['ultimosMesesGanancias'])),
@@ -91,7 +107,7 @@ def main_dashboard(request):
 
     fig_fico, fig_highlights, fig_ganXgrado, fig_ingXgrado, fig_morosos, fig_tabla, fig_linea = results
 
-    return render(request, 'content.html', {
+    context = {
         'fig_fico' : pio.to_html(fig_fico, include_plotlyjs='cdn'),
         'highlight_plot': pio.to_html(fig_highlights, include_plotlyjs='cdn'),
         'fig_ganXgrado': pio.to_html(fig_ganXgrado, include_plotlyjs='cdn'),
@@ -105,4 +121,9 @@ def main_dashboard(request):
         'all_propiedades': TIPO_PROP_VIVIENDAS,
         'all_regiones': REGIONES,
         'all_duracion': DURACION
-    })
+    }
+
+    # Guardar en caché
+    cache.set(cache_key, context, timeout=60*30)  # Guardar por 15 minutos
+
+    return render(request, 'content.html', context)
