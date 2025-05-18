@@ -7,8 +7,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smartlend Dashboard</title>
-  <link rel="shortcut icon" type="image/png" href="{% static 'images/logos/favicon.png' %}" />
+  <link rel="shortcut icon" type="image/png" href="{% static 'images/logos/logo_smartlend_reducido.jpg' %}" />
   <link rel="stylesheet" href="{% static 'css/styles.min.css' %}" />
+  <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
 </head>
 
 <body>
@@ -20,8 +21,8 @@
       <!-- Sidebar scroll-->
       <div>
         <div class="brand-logo d-flex align-items-center justify-content-between">
-          <a href="./index.html" class="text-nowrap logo-img">
-            <img src="{% static 'images/logos/dark-logo.svg' %}" width="180" alt="" />
+          <a href="./" class="text-nowrap logo-img">
+            <img src="{% static 'images/logos/logo_smartlend_reducido.jpg' %}" width="180" alt="" />
           </a>
           <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
             <i class="ti ti-x fs-8"></i>
@@ -29,86 +30,178 @@
         </div>
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
-          <form method="get" action="/app/main/">
-            <fieldset>
-                <legend>Selecciona las regiones</legend>
-                {% for region in all %}
-                    <label>
-                        <input type="checkbox" name="region" value="{{ region }}"
-                            {% if region in regions %}checked{% endif %}>
-                        Región {{ region }}
-                    </label><br>
+
+          <form method="get" action="/app/main/" id="filtros-form">
+
+            <!-- Campo Regiones como lista desplegable múltiple -->
+            <div class="dashboard-sidebar p-3">
+
+              <h5 class="sidebar-title">Estado del Prestatario</h5>
+
+              <div style="max-height: 200px; overflow-y: auto;">
+                <div class="btn-group-vertical w-100" role="group">
+                  {% for region in all_regiones %}
+                    <button type="button"
+                            name="region"
+                            value="{{ region }}"
+                            class="btn btn-outline-primary text-start filtro-region
+                                  {% if region in selected_regiones %}active{% endif %}"
+                            onclick="toggleFilter(this, 'region')">
+                      {{ region }}
+                    </button>
+                  {% endfor %}
+                </div>
+                <input type="hidden" name="region" id="hidden-region"
+                      value="{{ selected_regiones|join:',' }}">
+              </div>
+
+            </div>
+
+
+            <!-- Campo Tipo de Propiedad -->
+            <div class="dashboard-sidebar p-3">
+
+              <h5 class="sidebar-title">Tipo de Propiedad</h5>
+
+              <div class="btn-group-vertical w-100" role="group">
+
+                {% for tipo in all_propiedades %}
+
+                  <button type="button" 
+                          name="tipo_propiedad" 
+                          value="{{ tipo }}" 
+                          class="btn btn-outline-primary text-start filtro-tipo-propiedad 
+                                {% if tipo in selected_propiedades %}active{% endif %}"
+                          onclick="toggleFilter(this, 'tipo_propiedad')">
+                    {{ tipo }}
+                  </button>
+
                 {% endfor %}
-            </fieldset>
-            <button type="submit">Actualizar gráfico</button>
+
+              </div>
+
+              <input type="hidden" name="tipo_propiedad" id="hidden-tipo-propiedad" 
+                    value="{{ selected_propiedades|join:',' }}">
+
+            </div>
+
+            <!-- Campo Duración -->
+            <div class="dashboard-sidebar p-3">
+
+              <h5 class="sidebar-title">Duración del Préstamo</h5>
+
+              <div class="btn-group-vertical w-100" role="group">
+
+                {% for duracion in all_duracion %}
+
+                  <button type="button" 
+                          name="duracion" 
+                          value="{{ duracion }}" 
+                          class="btn btn-outline-primary text-start filtro-duracion 
+                                {% if duracion in selected_duracion %}active{% endif %}"
+                          onclick="toggleFilter(this, 'duracion')">
+                    {{ duracion }}
+                  </button>
+
+                {% endfor %}
+
+              </div>
+
+              <input type="hidden" name="duracion" id="hidden-duracion" 
+                    value="{{ selected_duracion|join:',' }}">
+
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-3 mb-5">Aplicar Filtros</button>
+            
           </form>
+
+            <script>
+            function toggleFilter(button, filterType) {
+              const value = button.value;
+              const hiddenInput = document.getElementById(`hidden-${filterType.replace('_', '-')}`);
+
+              let currentValues = hiddenInput.value ? hiddenInput.value.split(',') : [];
+              
+              // Obtener todos los botones del mismo grupo
+              const allButtons = document.querySelectorAll(`.filtro-${filterType.replace('_', '-')}`);
+              
+              if (value === 'Todas') {
+                // Si ya está seleccionada "Todas", deseleccionar todo
+                if (button.classList.contains('active')) {
+                  console.log('Todas');
+                  currentValues = [];
+                  allButtons.forEach(btn => btn.classList.remove('active'));
+                } else {
+                  // Seleccionar solo "Todas"
+                  currentValues = ['Todas'];
+                  allButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.value === 'Todas') btn.classList.add('active');
+                  });
+                }
+              } else {
+                // Si se selecciona una opción específica
+                const todasIndex = currentValues.indexOf('Todas');
+                if (todasIndex !== -1) {
+                  currentValues.splice(todasIndex, 1);
+                  // Desactivar el botón "Todas"
+                  document.querySelector(`.filtro-${filterType.replace('_', '-')}[value="Todas"]`)
+                    .classList.remove('active');
+                }
+                
+                // Toggle la selección del botón actual
+                const valueIndex = currentValues.indexOf(value);
+                if (valueIndex === -1) {
+                  currentValues.push(value);
+                  button.classList.add('active');
+                } else {
+                  currentValues.splice(valueIndex, 1);
+                  button.classList.remove('active');
+                }
+                
+                // Si no hay nada seleccionado, seleccionar "Todas" por defecto
+                if (currentValues.length === 0) {
+                  currentValues = ['Todas'];
+                  document.querySelector(`.filtro-${filterType.replace('_', '-')}[value="Todas"]`)
+                    .classList.add('active');
+                }
+              }
+              
+              hiddenInput.value = currentValues.join(',');
+            }
+            </script>
+
         </nav>
         <!-- End Sidebar navigation -->
+
       </div>
       <!-- End Sidebar scroll-->
     </aside>
+
     <!--  Sidebar End -->
+
     <!--  Main wrapper -->
     <div class="body-wrapper">
       <!--  Header Start -->
       <header class="app-header">
-        <nav class="navbar navbar-expand-lg navbar-light">
-          <ul class="navbar-nav">
-            <li class="nav-item d-block d-xl-none">
-              <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse" href="javascript:void(0)">
-                <i class="ti ti-menu-2"></i>
-              </a>
-            </li>
-          </ul>
-          <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
-            <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-              <li class="nav-item dropdown">
-                <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"
-                  aria-expanded="false">
-                  <img src="{% static 'images/profile/user-1.jpg' %}" alt="" width="35" height="35" class="rounded-circle">
-                </a>
-                <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
-                  <div class="message-body">
-                    <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                      <i class="ti ti-user fs-6"></i>
-                      <p class="mb-0 fs-3">My Profile</p>
-                    </a>
-                    <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                      <i class="ti ti-mail fs-6"></i>
-                      <p class="mb-0 fs-3">My Account</p>
-                    </a>
-                    <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                      <i class="ti ti-list-check fs-6"></i>
-                      <p class="mb-0 fs-3">My Task</p>
-                    </a>
-                    <a href="./authentication-login.html" class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        <div class="app-title text-center mt-4 mb-3">
+          <h1 class="fw-bold display-4 text-primary" style="letter-spacing:1px;">
+            Smartlend Dashboard
+          </h1>
+        </div>
       </header>
       <!--  Header End -->
+
       <div class="container-fluid">
-
-        {% block content %}
-
-        {% endblock content %}
-
-        <!-- <div class="py-6 px-6 text-center">
-          <p class="mb-0 fs-4">Design and Developed by <a href="https://adminmart.com/" target="_blank" class="pe-1 text-primary text-decoration-underline">AdminMart.com</a> Distributed by <a href="https://themewagon.com">ThemeWagon</a></p>
-        </div> -->
+        <div class="mt-5">
+          {% block content %}
+          {% endblock content %}
+        </div>
       </div>
+
     </div>
   </div>
-  <script src="{% static  'libs/jquery/dist/jquery.min.js' %}"></script>
-  <script src="{% static  'libs/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static  'js/sidebarmenu.js' %}"></script>
-  <script src="{% static  'js/app.min.js' %}"></script>
-  <script src="{% static  'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
-  <script src="{% static  'libs/simplebar/dist/simplebar.js' %}"></script>
-  <script src="{% static  'js/dashboard.js' %}"></script>
 </body>
 
 </html>
