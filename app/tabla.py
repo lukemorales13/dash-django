@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-def generar_tabla_resumen_prestamos(filtros, collection):
+def generar_tabla_resumen_prestamos(filtross, collection):
     """
     Recibe un diccionario con los filtros:
     {
@@ -11,6 +11,14 @@ def generar_tabla_resumen_prestamos(filtros, collection):
     }
     Devuelve una tabla resumen como figura Plotly
     """
+
+    # Copia de los filtros para evitar modificar el original
+    filtros = filtross.copy()
+    if filtros['tipo_propiedad'] == ['Hipoteca', 'Alquilada', 'Propia']:
+        filtros['tipo_propiedad'] = ['Hipoteca', 'Alquilada', 'Propia', 'ANY']
+    # reemplazar Alquilada por Renta si es que existe
+    if 'Alquilada' in filtros['tipo_propiedad']:
+        filtros['tipo_propiedad'] = ['Renta' if x == 'Alquilada' else x for x in filtros['tipo_propiedad']]
 
     # Construir consulta
     query = {}
